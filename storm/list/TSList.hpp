@@ -1,6 +1,7 @@
 #ifndef STORM_LIST_TS_LIST_HPP
 #define STORM_LIST_TS_LIST_HPP
 
+#include "storm/Error.hpp"
 #include "storm/Memory.hpp"
 #include "storm/list/TSGetLink.hpp"
 #include "storm/list/TSLink.hpp"
@@ -21,6 +22,7 @@ class TSList {
     TSList();
     ~TSList();
     void ChangeLinkOffset(ptrdiff_t linkoffset);
+    void Clear();
     void DeleteAll(void);
     T* DeleteNode(T* ptr);
     T* Head(void);
@@ -39,6 +41,7 @@ class TSList {
     T* Tail(void);
     void UnlinkAll(void);
     void UnlinkNode(T* node);
+    void Combine(TSList<T, TGetLink>* list, uint32_t linktype, T* existingptr);
 };
 
 template <class T, class TGetLink>
@@ -144,7 +147,7 @@ void TSList<T, TGetLink>::LinkNode(T* ptr, uint32_t linktype, T* existingptr) {
         break;
 
     default:
-        // TODO error
+        STORM_ERROR_FMT("Invalid case: %s=%u", "linktype", linktype);
         break;
     }
 }
@@ -220,9 +223,54 @@ void TSList<T, TGetLink>::UnlinkAll() {
 }
 
 template <class T, class TGetLink>
+void TSList<T, TGetLink>::Clear() {
+    this->DeleteAll();
+}
+
+template <class T, class TGetLink>
 void TSList<T, TGetLink>::UnlinkNode(T* node) {
     TSLink<T>* link = this->Link(node);
     link->Unlink();
+}
+
+// ?Combine@?$TSList@UEvtMessage@@V?$TSGetExplicitLink@UEvtMessage@@@@@@QAEXPAV1@KPAUEvtMessage@@@Z
+template <class T, class TGetLink>
+void TSList<T, TGetLink>::Combine(TSList<T, TGetLink>* list, uint32_t linktype, T* existingptr) {
+    STORM_ASSERT(list);
+    STORM_ASSERT(list != this);
+    STORM_ASSERT(list->m_linkoffset == m_linkoffset);
+
+    // Check if this and list are already combined
+    if (list->m_terminator.m_prevlink != &this->m_terminator) {
+        // Not combined, combine now
+        TSLink<T>* link = this->Link(existingptr);
+        TSLink<T>* prev;
+        T* next;
+
+        switch (linktype) {
+        // After existingptr
+        case 1:
+            next = link->m_next;
+            link->NextLink(this->m_linkoffset)->m_prevlink = list->m_terminator.m_prevlink;
+            link->m_next = list->m_terminator.m_next;
+            list->m_terminator.NextLink(list->m_linkoffset)->m_prevlink = link;
+            list->m_terminator.m_prevlink->m_next = next;
+            list->InitializeTerminator();
+            break;
+        case 2:
+            // Before existingptr
+            prev = link->m_prevlink;
+            next = prev->m_next;
+            link->m_prevlink->m_next = list->Head();
+            link->m_prevlink = list->m_terminator.m_prevlink;
+            list->m_terminator.NextLink(list->m_linkoffset)->m_prevlink = link->m_prevlink;
+            list->InitializeTerminator();
+            break;
+        default:
+            STORM_ERROR_FMT("Invalid case: %s=%u", "linktype", linktype);
+            break;
+        }
+    }
 }
 
 #endif
