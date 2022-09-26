@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+int32_t s_displaying = 0;
+
 [[noreturn]] void SErrDisplayAppFatal(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -71,4 +73,8 @@ void SErrPrepareAppFatal(const char* filename, int32_t linenumber) {
 
 void SErrSetLastError(uint32_t errorcode) {
     // TODO
+}
+
+int32_t SErrIsDisplayingError() {
+    return s_displaying;
 }
