@@ -2,7 +2,11 @@
 
 void CSRWLock::Enter(int32_t forwriting) {
 #if defined(WHOA_SYSTEM_WIN)
-    SRWLock::SURWLockEnter(&this->m_opaqueData, forwriting);
+    if (forwriting) {
+        AcquireSRWLockExclusive(&m_lock);
+    } else {
+        AcquireSRWLockShared(&m_lock);
+    }
 #endif
 
 #if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
@@ -16,7 +20,11 @@ void CSRWLock::Enter(int32_t forwriting) {
 
 void CSRWLock::Leave(int32_t fromwriting) {
 #if defined(WHOA_SYSTEM_WIN)
-    SRWLock::SURWLockLeave(&this->m_opaqueData, fromwriting);
+    if (fromwriting) {
+        ReleaseSRWLockExclusive(&m_lock);
+    } else {
+        ReleaseSRWLockShared(&m_lock);
+    }
 #endif
 
 #if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)

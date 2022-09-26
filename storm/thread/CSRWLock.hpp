@@ -4,7 +4,9 @@
 #include <cstdint>
 
 #if defined(WHOA_SYSTEM_WIN)
-#include "storm/thread/win/SRWLock.hpp"
+
+#include <windows.h>
+
 #endif
 
 #if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
@@ -15,7 +17,7 @@ class CSRWLock {
     public:
     // Member variables
 #if defined(WHOA_SYSTEM_WIN)
-    SRWLock::SURWLOCK m_opaqueData;
+    SRWLOCK m_lock;
 #endif
 
 #if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
