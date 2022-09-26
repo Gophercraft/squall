@@ -11,6 +11,10 @@
 #include <pthread.h>
 #endif
 
+#define OSWAIT_OBJECT_0 0
+#define OSWAIT_TIMEOUT 0x00000102
+#define OSWAIT_FAILED 0xFFFFFFFF
+
 class SSyncObject {
     public:
     // Member variables

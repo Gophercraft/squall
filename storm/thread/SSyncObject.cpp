@@ -19,8 +19,7 @@ uint32_t SSyncObject::Wait(uint32_t timeoutMs) {
 
 #if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
     if (this->int0 == 6) {
-        // WAIT_FAILED
-        return 0xFFFFFFFF;
+        return OSWAIT_FAILED;
     }
 
     if (timeoutMs != 0xFFFFFFFF) {
@@ -52,27 +51,23 @@ uint32_t SSyncObject::Wait(uint32_t timeoutMs) {
 
             if (v3 != EBUSY) {
                 if (v3 != ETIMEDOUT) {
-                    // WAIT_FAILED
-                    return 0xFFFFFFFF;
+                    return OSWAIT_FAILED;
                 } else {
-                    // WAIT_TIMEOUT
-                    return 0x00000102;
+                    return OSWAIT_TIMEOUT;
                 }
             }
 
             gettimeofday(&v10, nullptr);
 
             if (v10.tv_sec > v11.tv_sec || (v10.tv_sec == v11.tv_sec && 1000 * v10.tv_usec >= v11.tv_nsec)) {
-                // WAIT_TIMEOUT
-                return 0x00000102;
+                return OSWAIT_TIMEOUT;
             }
 
             usleep(0);
         }
 
         if (this->int0 == 3) {
-            // WAIT_OBJECT_0
-            return 0;
+            return OSWAIT_OBJECT_0;
         }
 
         int32_t v4;
@@ -90,11 +85,9 @@ uint32_t SSyncObject::Wait(uint32_t timeoutMs) {
                 pthread_mutex_unlock(&this->m_mutex);
 
                 if (v5 == ETIMEDOUT) {
-                    // WAIT_TIMEOUT
-                    return 0x00000102;
+                    return OSWAIT_TIMEOUT;
                 } else {
-                    // WAIT_FAILED
-                    return 0xFFFFFFFF;
+                    return OSWAIT_FAILED;
                 }
             }
         }
@@ -107,15 +100,13 @@ uint32_t SSyncObject::Wait(uint32_t timeoutMs) {
 
         pthread_mutex_unlock(&this->m_mutex);
 
-        // WAIT_OBJECT_0
-        return 0;
+        return OSWAIT_OBJECT_0;
     }
 
     pthread_mutex_lock(&this->m_mutex);
 
     if (this->int0 == 3) {
-        // WAIT_OBJECT_0
-        return 0;
+        return OSWAIT_OBJECT_0;
     }
 
     while (!this->m_value1) {
@@ -130,7 +121,6 @@ uint32_t SSyncObject::Wait(uint32_t timeoutMs) {
 
     pthread_mutex_unlock(&this->m_mutex);
 
-    // WAIT_OBJECT_0
-    return 0;
+    return OSWAIT_OBJECT_0;
 #endif
 }
