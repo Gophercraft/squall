@@ -1,5 +1,6 @@
 #include "storm/Hash.hpp"
 #include "test/Test.hpp"
+#include "storm/thread/CCritSect.hpp"
 
 struct TestHashObject : TSHashObject<TestHashObject, HASHKEY_STRI> {
     uint32_t index = 0;
@@ -32,5 +33,32 @@ TEST_CASE("TSHashTable::Clear", "[hash]") {
         hashTable.New("testKey2", 0, 0x0);
         hashTable.Clear();
         REQUIRE(hashTable.Head() == nullptr);
+    }
+}
+
+TEST_CASE("TSHashTableReuse", "[hash]") {
+    SECTION("constructs correctly") {
+        TSHashTableReuse<TestHashObject, HASHKEY_STRI, 1> hashTable;
+        REQUIRE(hashTable.Head() == nullptr);
+    }
+}
+
+TEST_CASE("TSExportTableSync", "[hash]") {
+    typedef uintptr_t TestLockhandle;
+    typedef uintptr_t Testhandle;
+
+    struct TestExportObject : TSHashObject<TestExportObject, HASHKEY_NONE> {
+        uint32_t index = 0;
+    };
+
+    SECTION("constructs correctly") {
+        TSExportTableSync<TestExportObject, Testhandle, TestLockhandle, CCritSect, 1> syncTable;
+        REQUIRE(syncTable.Head() == nullptr);
+        Testhandle handle;
+
+        TestExportObject * ptr = syncTable.New(&handle);
+
+        printf("%d\n", (uint32_t)handle);
+        syncTable.Delete(handle);
     }
 }
