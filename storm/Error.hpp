@@ -39,6 +39,9 @@
     (void)0
 #endif
 
+#define STORM_ERROR_FMT(...) SErrDisplayErrorFmt(ERROR_INVALID_PARAMETER, __FILE__, __LINE__, 0, 1, __VA_ARGS__)
+#define STORM_ERROR(...) SErrDisplayErrorFmt(ERROR_INVALID_PARAMETER, __FILE__, __LINE__, 0, 1, __VA_ARGS__)
+
 [[noreturn]] void SErrDisplayAppFatal(const char* format, ...);
 
 int32_t SErrDisplayError(uint32_t errorcode, const char* filename, int32_t linenumber, const char* description, int32_t recoverable, uint32_t exitcode, uint32_t a7);
