@@ -24,11 +24,12 @@ class TSHashTable {
     void Initialize();
     bool Initialized();
     void Insert(T* ptr, uint32_t hashval, const TKey& key);
-    void InternalClear(int32_t warn);
-    void InternalDelete(T* ptr);
-    void InternalLinkNode(T* ptr, uint32_t hashval);
-    T* InternalNew(STORM_EXPLICIT_LIST(T, m_linktoslot)* listptr, size_t extrabytes, uint32_t flags);
-    T* InternalNewNode(uint32_t, size_t extrabytes, uint32_t flags);
+    void Delete(T* ptr);
+    virtual void InternalClear(int32_t warn);
+    virtual void InternalDelete(T* ptr);
+    virtual void InternalLinkNode(T* ptr, uint32_t hashval);
+    virtual T* InternalNew(STORM_EXPLICIT_LIST(T, m_linktoslot)* listptr, size_t extrabytes, uint32_t flags);
+    virtual T* InternalNewNode(uint32_t, size_t extrabytes, uint32_t flags);
     int32_t MonitorFullness(uint32_t slot);
     T* New(const char* str, size_t extrabytes, uint32_t flags);
     T* New(uint32_t hashval, const char* str, size_t extrabytes, uint32_t flags);
@@ -264,6 +265,12 @@ void TSHashTable<T, TKey>::Unlink(T* ptr) {
         ptr->m_linktoslot.Unlink();
         ptr->m_linktofull.Unlink();
     }
+}
+
+template <class T, class TKey>
+void TSHashTable<T, TKey>::Delete(T* ptr) {
+    this->Unlink(ptr);
+    this->InternalDelete(ptr);
 }
 
 #endif
