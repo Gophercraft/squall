@@ -18,6 +18,8 @@ class TSGrowableArray : public TSFixedArray<T> {
     void GrowToFit(uint32_t index, int32_t zero);
     T* New(void);
     void Reserve(uint32_t count, int32_t round);
+    void ReserveSpace(uint32_t count);
+    uint32_t Reserved();
     uint32_t RoundToChunk(uint32_t count, uint32_t chunk);
     void SetCount(uint32_t count);
 };
@@ -113,6 +115,11 @@ void TSGrowableArray<T>::Reserve(uint32_t count, int32_t round) {
 }
 
 template <class T>
+void TSGrowableArray<T>::ReserveSpace(uint32_t count) {
+    this->Reserve(count, 0);
+}
+
+template <class T>
 uint32_t TSGrowableArray<T>::RoundToChunk(uint32_t count, uint32_t chunk) {
     if (count % chunk) {
         return chunk - count % chunk + count;
@@ -136,6 +143,13 @@ void TSGrowableArray<T>::SetCount(uint32_t count) {
     }
 
     this->m_count = count;
+}
+
+template <class T>
+uint32_t TSGrowableArray<T>::Reserved() {
+    STORM_ASSERT(m_alloc >= m_count);
+
+    return m_alloc - m_count;
 }
 
 #endif
